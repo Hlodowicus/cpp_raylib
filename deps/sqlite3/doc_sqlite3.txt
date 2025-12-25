@@ -1,0 +1,66 @@
+
+
+__________________________________________________________________________________
+OUVRIR OU CRÉER UNE BASE DE DONNÉES
+sqlite3 *db;
+int rc = sqlite3_open("test.db", &db);
+
+if (rc != SQLITE_OK) {
+    printf("Erreur ouverture DB: %s\n", sqlite3_errmsg(db));
+    return 1;
+}
+
+printf("Base ouverte avec succès\n");
+__________________________________________________________________________________
+CRÉER UNE TABLE
+char *errMsg = 0;
+
+const char *sql =
+    "CREATE TABLE IF NOT EXISTS player ("
+    "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+    "name TEXT,"
+    "score INTEGER);";
+
+rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
+
+if (rc != SQLITE_OK) {
+    printf("Erreur SQL: %s\n", errMsg);
+    sqlite3_free(errMsg);
+} else {
+    printf("Table créée avec succès\n");
+}
+__________________________________________________________________________________
+INSÉRER DES DONNÉES
+const char *insert_sql =
+    "INSERT INTO player (name, score) VALUES ('Alice', 120);";
+
+rc = sqlite3_exec(db, insert_sql, 0, 0, &errMsg);
+
+if (rc != SQLITE_OK) {
+    printf("Erreur insertion: %s\n", errMsg);
+    sqlite3_free(errMsg);
+} else {
+    printf("Données insérées\n");
+}
+__________________________________________________________________________________
+LIRE DES DONNÉES
+int callback(void *data, int argc, char **argv, char **colName) {
+    for (int i = 0; i < argc; i++) {
+        printf("%s = %s\n", colName[i], argv[i] ? argv[i] : "NULL");
+    }
+    printf("\n");
+    return 0;
+}
+PUIS
+const char *select_sql = "SELECT * FROM player;";
+
+rc = sqlite3_exec(db, select_sql, callback, 0, &errMsg);
+
+if (rc != SQLITE_OK) {
+    printf("Erreur SELECT: %s\n", errMsg);
+    sqlite3_free(errMsg);
+}
+__________________________________________________________________________________
+FERMER LA BASE DE DONNÉES
+sqlite3_close(db);
+printf("Base fermée\n");
